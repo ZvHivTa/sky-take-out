@@ -82,5 +82,6 @@ public class EmployeeController {
     public Result save(@RequestBody EmployeeDTO employeeDTO) {
         log.info("新增员工{}", employeeDTO);
         employeeService.save(employeeDTO);
+        return new Result<>();
     }
 }
