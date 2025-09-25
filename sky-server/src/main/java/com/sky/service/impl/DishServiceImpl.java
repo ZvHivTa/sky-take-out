@@ -87,6 +87,7 @@ public class DishServiceImpl implements DishService {
      * 菜品批量删除
      * @param ids
      */
+    @Transactional
     @Override
     public void deleteBatch(List<Long> ids) {
         //判断能不能删除菜品
@@ -107,10 +108,53 @@ public class DishServiceImpl implements DishService {
 
         //可以删除
             //删除菜品
-
-
-
-
+            dishMapper.deleteBatchById(dishes);
             //删除对应的口味
+            dishFlavorMapper.deleteBatchByDishId(dishes);
+
+    }
+
+    /**
+     * 根据id查询菜品
+     * @param id
+     * @return
+     */
+    @Override
+    public DishVO getByIdWithFlavors(Long id) {
+        //查菜品
+        Dish dish = dishMapper.getById(id);
+
+        //查菜品口味
+        List<DishFlavor> dishFlavors = dishFlavorMapper.getByDishId(id);
+
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish, dishVO);
+        dishVO.setFlavors(dishFlavors);
+        return dishVO;
+    }
+
+    /**
+     * 修改菜品信息和口味信息
+     * @param dishDTO
+     */
+    @Transactional
+    @Override
+    public void updateWithFlavor(DishDTO dishDTO) {
+        //先修改菜品信息
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        dishMapper.update(dish);
+        //先删除所有口味
+        Long id = dish.getId();
+        dishFlavorMapper.deleteByDishId(id);
+
+        //按前端传过来的数据统一再修改
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if(flavors != null && flavors.size() > 0) {
+            flavors.forEach(flavor -> {
+                flavor.setDishId(id);
+            });
+        }
+        dishFlavorMapper.insertBatch(flavors);
     }
 }
