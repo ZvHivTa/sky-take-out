@@ -4,3 +4,19 @@ sky:
     url: jdbc:mysql://43.153.205.189:3306/sky_take_out
     username: remotezht
     password: zht12345678@
+  wechat:
+    appid:
+    secret:
+
+  redis:
+    host: 43.153.205.189
+    port: 6380
+    password: 13032BF859CC591E3219EE5BB9EFC95F
+    database: 0
+  alioss:
+    access-key-id:
+    access-key-secret:
+    bucket-name:
+    endpoint:
+
+
