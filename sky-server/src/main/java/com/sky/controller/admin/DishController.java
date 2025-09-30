@@ -10,9 +10,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/admin/dish")
@@ -21,6 +23,11 @@ import java.util.List;
 public class DishController {
     @Autowired
     private DishService dishService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    public static final String redisKeyPattern = "dish_";
 
     /**
      * 新增菜品
@@ -32,6 +39,9 @@ public class DishController {
     public Result save(@RequestBody DishDTO dishDTO){
         log.info("新增菜品：{}",dishDTO);
         dishService.save(dishDTO);
+
+        //清理缓存
+        cleanRedisCache(redisKeyPattern + dishDTO.getCategoryId());
         return Result.success();
     }
 
@@ -58,6 +68,9 @@ public class DishController {
     public Result delete(@RequestParam List<Long> ids){
         log.info("菜品批量删除:{}",ids);
         dishService.deleteBatch(ids);
+
+        //清理缓存
+        cleanRedisCache(redisKeyPattern + "*");
         return Result.success();
     }
 
@@ -84,6 +97,28 @@ public class DishController {
     public Result update(@RequestBody DishDTO dishDTO){
         log.info("修改菜品:{}",dishDTO);
         dishService.updateWithFlavor(dishDTO);
+
+        cleanRedisCache(redisKeyPattern + "*");
         return Result.success();
+    }
+
+    /**
+     * 起售停售菜品
+     * @param status
+     * @param id
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    @ApiOperation("起售停售菜品")
+    public Result startOrStop(@PathVariable Integer status, Long id){
+        dishService.startOrStop(status,id);
+
+        cleanRedisCache(redisKeyPattern + "*");
+        return Result.success();
+    }
+
+    private void cleanRedisCache(String Pattern){
+        Set keys = redisTemplate.keys(Pattern);
+        redisTemplate.delete(keys);
     }
 }

@@ -6,10 +6,12 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.enumeration.OperationType;
+import com.sky.vo.DishItemVO;
 import com.sky.vo.DishVO;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -36,4 +38,17 @@ public interface DishMapper {
 
     @AutoFill(value = OperationType.UPDATE)
     void update(Dish dish);
+
+    @Select("select * from dish where category_id = #{dish.categoryId} and status = #{dish.status}")
+    List<Dish> getByCategoryId(Dish dish);
+    @Select("select sd.name, sd.copies, d.image, d.description " +
+            "from setmeal_dish sd left join dish d on sd.dish_id = d.id " +
+            "where sd.setmeal_id = #{setmealId}")
+    List<DishItemVO> getDishFromSetmeal(Long setmealId);
+
+    @Update("update dish set status = #{status} where id = #{id}")
+    void startOrStop(Integer status, Long id);
+
+    @Select("select a.* from dish a left join setmeal_dish b on a.id = b.dish_id where b.setmeal_id = #{setmealId}")
+    List<Dish> getBySetmealId(Long setmealId);
 }
