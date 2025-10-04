@@ -11,4 +11,35 @@
                 #{amount}, #{remark}, #{phone}, #{address}, #{userName}, #{consignee}, #{cancelReason}, #{rejectionReason}, #{cancelTime}, #{estimatedDeliveryTime},
                 #{deliveryStatus}, #{deliveryTime}, #{packAmount}, #{tablewareNumber}, #{tablewareStatus})
     </insert>
+
+    <update id="updateBatch" parameterType="java.util.List">
+        UPDATE sky_take_out.orders
+        SET
+        status = CASE id
+        <foreach collection="ordersList" item="item" separator=" " >
+            <if test="item.status != null">
+                WHEN #{item.id} THEN #{item.status}
+            </if>
+        </foreach>
+        END,
+        cancel_time = CASE id
+        <foreach collection="ordersList" item="item" separator=" " >
+            <if test="item.cancelTime != null">
+                WHEN #{item.id} THEN #{item.cancelTime}
+            </if>
+        </foreach>
+        END,
+        cancel_reason = CASE id
+        <foreach collection="ordersList" item="item" separator=" " >
+            <if test="item.cancelReason != null">
+                WHEN #{item.id} THEN #{item.cancelReason}
+            </if>
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="ordersList" item="item" open="(" close=")" separator=",">
+            #{item.id}
+        </foreach>
+    </update>
+
 </mapper>
