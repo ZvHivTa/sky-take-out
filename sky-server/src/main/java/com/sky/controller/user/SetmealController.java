@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.ServletRequest;
 import java.util.List;
 
-@RestController
+@RestController("userSetmealController")
 @RequestMapping("/user/setmeal")
 @Api(tags = "套餐相关接口")
 public class SetmealController {
