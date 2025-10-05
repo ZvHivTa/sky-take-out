@@ -22,4 +22,6 @@ public interface ShoppingCartMapper {
 
     @Delete("delete from sky_take_out.shopping_cart where user_id = #{currentId}")
     void delete(Long currentId);
+
+    void insertBatch(List<ShoppingCart> shoppingCartList);
 }

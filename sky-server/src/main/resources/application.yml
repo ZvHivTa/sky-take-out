@@ -57,3 +57,7 @@ sky:
   wechat:
     appid: ${sky.wechat.appid}
     secret: ${sky.wechat.secret}
+  shop:
+    address: 1
+  baidu:
+    ak: 2

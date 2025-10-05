@@ -4,10 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
 import com.sky.entity.*;
 import com.sky.result.PageResult;
+import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.*;
 import com.sky.dto.*;
 import com.sky.exception.AddressBookBusinessException;
@@ -17,7 +19,7 @@ import com.sky.mapper.*;
 import com.sky.service.OrderService;
 import com.sky.utils.HttpClientUtil;
 import com.sky.websocket.WebSocketServer;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -52,6 +55,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private WebSocketServer webSocketServer;
+
+    @Autowired
+    private WeChatPayUtil weChatPayUtil;
+
+    @Value("${sky.shop.address}")
+    private String shopAddress;
+
+    @Value("${sky.baidu.ak}")
+    private String ak;
     /**
      * 用户下单
      * @param ordersSubmitDTO
@@ -113,12 +125,6 @@ public class OrderServiceImpl implements OrderService {
                 .orderAmount(orders.getAmount())
                 .build();
     }
-
-    @Value("${sky.shop.address}")
-    private String shopAddress;
-
-    @Value("${sky.baidu.ak}")
-    private String ak;
 
     /**
      * 检查客户的收货地址是否超出配送范围
@@ -193,7 +199,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {
         // 当前登录用户id
         Long userId = BaseContext.getCurrentId();
-        User user = userMapper.getById(userId);
+        User user = userMapper.selectById(userId);
 
         //调用微信支付接口，生成预支付交易单
         JSONObject jsonObject = weChatPayUtil.pay(
@@ -397,7 +403,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderVO> orderVOList = new ArrayList<>();
 
         List<Orders> ordersList = page.getResult();
-        if (!CollectionUtils.isEmpty(ordersList)) {
+        if (ordersList!= null && !ordersList.isEmpty()) {
             for (Orders orders : ordersList) {
                 // 将共同字段复制到OrderVO
                 OrderVO orderVO = new OrderVO();
